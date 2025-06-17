@@ -1,0 +1,1137 @@
+libname xptlib1 xport '/home/u63498842/OFFICIAL_CAPSTONE/P_ALC.xpt';
+libname xptlib2 xport '/home/u63498842/OFFICIAL_CAPSTONE/P_DEMO.xpt';
+libname xptlib3 xport '/home/u63498842/OFFICIAL_CAPSTONE/P_Dia.xpt';
+libname xptlib4 xport "/home/u63498842/OFFICIAL_CAPSTONE/P_HealthInsurance.xpt";
+libname xptlib5 xport "/home/u63498842/OFFICIAL_CAPSTONE/P_Income.xpt";
+libname xptlib6 xport "/home/u63498842/OFFICIAL_CAPSTONE/P_Repro.xpt";
+libname xptlib7 xport "/home/u63498842/OFFICIAL_CAPSTONE/P_SMOKING.xpt";
+libname xptlib8 xport "/home/u63498842/OFFICIAL_CAPSTONE/P_WeightHis.xpt";
+
+data alc;
+	set xptlib1.p_alq (keep=SEQN ALQ130);
+
+	if ALQ130=1 then
+		AlcCon="light";
+	else if ALQ130 >=2 and ALQ130 <=4 then
+		AlcCon="reg";
+	else if 20>ALQ130 and ALQ130 >=5 then
+		AlcCon="heavy";
+	else
+		AlcCon=" ";
+	drop ALQ130;
+run;
+
+data demo;
+	set xptlib2.p_demo (keep=SEQN RIAGENDR RIDAGEYR RIDRETH3);
+
+	/*if RIAGENDR = 2;*/
+	if 15<RIDAGEYR and RIDAGEYR <=50;
+	rename RIDAGEYR=Age;
+
+	if RIDRETH3=1 then
+		Race="his";
+	else if RIDRETH3=2 then
+		Race="his";
+	else if RIDRETH3=3 then
+		Race="white";
+	else if RIDRETH3=4 then
+		Race="black";
+	else if RIDRETH3=6 then
+		Race="asian";
+	else if RIDRETH3=7 then
+		Race="other";
+	drop /*RIAGENDR*/
+	RIDRETH3;
+run;
+
+data dia;
+	set xptlib3.P_DIQ (keep=SEQN DIQ010);
+
+	if DIQ010=1 then
+		HasDia="yes";
+	else if DIQ010=2 then
+		HasDia="no";
+	else
+		DIQ010=" ";
+	drop DIQ010;
+run;
+
+data HealthInsur;
+	set xptlib4.P_HIQ (keep=SEQN HIQ011);
+
+	if HIQ011=. then
+		HIQ011=0;
+
+	if HIQ011=1 then
+		HealthCov="yes";
+	else if HIQ011=2 then HealthCov="no";
+	else HealthCov= " ";
+	drop HIQ011;
+run;
+
+data income;
+	set xptlib5.P_INQ (keep=SEQN INDFMMPC);
+
+	if INDFMMPC=1 then
+		HHIncome="low";
+	else if INDFMMPC=2 then
+		HHIncome="middle";
+	else if INDFMMPC=3 then
+		HHIncome="high";
+	else
+		HHIncome="null";
+	drop INDFMMPC;
+run;
+
+data repro;
+	set xptlib6.p_rhq (keep=SEQN RHQ131 RHQ160 RHQ162 RHD167 RHQ171 RHQ172 RHD180 
+		RHQ540);
+
+	if RHQ131=1 then
+		EverPreg="yes";
+	else if RHQ131=2 then
+		EverPreg="no";
+	else
+		EverPreg=" ";
+
+	if RHQ160=. then
+		RHQ160=0;
+
+	if RHQ160>12 then
+		RHQ160=0;
+	rename RHQ160=TimesPreg;
+
+	if RHQ162=. then
+		RHQ162=0;
+
+	if RHQ162=1 then
+		GestDia="yes";
+	else if RHQ162=2 then
+		GestDia="no";
+	else if RHQ162=3 then
+		GestDia="borderline";
+	else
+		GestDia="null";
+
+	if RHD167>6 then
+		RHD167=0;
+	rename RHD167=NumDeliv;
+
+	if RHQ171>6 then
+		RHQ171=0;
+	rename RHQ171=LiveBirths;
+
+	if RHQ172=1 then
+		HeavyBaby="yes";
+	else if RHQ172=2 then
+		HeavyBaby="no";
+	else
+		HeavyBaby="null";
+
+	if RHD180 <16 then
+		RHD180=0;
+	rename RHD180=AgeLiveBirth;
+
+	if RHQ540=1 then
+		HormUse="yes";
+	else if RHQ540=2 then
+		HormUse="no";
+
+	else HormUse= " ";
+	drop RHQ131 RHQ162 RHQ172 RHQ540;
+run;
+
+data smoking;
+	set xptlib7.p_smq (keep=SEQN SMQ020);
+
+	if SMQ020=1 then
+		Smoker="yes";
+
+	if SMQ020=2 then
+		Smoker="no";
+	drop SMQ020;
+run;
+
+data BMI;
+	set xptlib8.p_whq (keep=SEQN WHD010 WHD020);
+	heightsqu=WHD010*WHD010;
+	whcomb=WHD020/heightsqu;
+	size=whcomb*703;
+
+	if size<18.5 then
+		BMIGroup="1";
+	else if 18.5<=size <=24.9 then
+		BMIGroup="2";
+	else if 25<=size <=29.9 then
+		BMIGroup="3";
+	else if size >=30 then
+		BMIGroup="4";
+	drop WHD010 WHD020 heightsqu whcomb size;
+run;
+
+proc sort data=alc;
+	by SEQN;
+run;
+
+proc sort data=demo;
+	by SEQN;
+run;
+
+proc sort data=dia;
+	by SEQN;
+run;
+
+proc sort data=HealthInsur;
+	by SEQN;
+run;
+
+proc sort data=income;
+	by SEQN;
+run;
+
+proc sort data=repro;
+	by SEQN;
+run;
+
+proc sort data=smoking;
+	by SEQN;
+run;
+
+proc sort data=BMI;
+	by SEQN;
+run;
+
+data comb1;
+	merge alc demo;
+	by SEQN;
+run;
+
+data comb2;
+	merge dia HealthInsur;
+	by SEQN;
+run;
+
+data comb3;
+	merge income repro;
+	by SEQN;
+run;
+
+data comb4;
+	merge smoking BMI;
+	by SEQN;
+run;
+
+data dub1;
+	merge comb1 comb2;
+	by SEQN;
+run;
+
+data dub2;
+	merge comb3 comb4;
+	by SEQN;
+run;
+
+data officalset;
+	merge dub1 dub2;
+	by SEQN;
+run;
+
+data justwomen;
+	set officalset;
+
+	if RIAGENDR=2;
+	drop RIAGENDR;
+
+	if healthcov="yes" then
+		HealthCoverage=1;
+	else if healthcov="no" then
+		HealthCoverage=0;
+run;
+
+
+proc genmod data=justwomen;
+	class Race(ref="whi") BMIgroup(ref="2") HasDia(ref="no") AlcCon(ref="reg") 
+		smoker(ref="no") HealthCov(ref="yes");
+
+	/* Declare categorical variables */
+	model NumDeliv=Race BMIgroup HasDia AlcCon Smoker HealthCov/ dist=poisson 
+		link=log type3;
+	title "Poisson Regression Model: Number of Deliveries (NumDeliv)";
+run;
+
+/* Descriptive Statistics for Num Deliv TimesPreg and LiveBirths*/
+proc means data=justwomen;
+	var NumDeliv TimesPreg LiveBirths;
+
+	/* Specify the numeric variables */
+run;
+
+/* Poisson Regression-- b/c this is COUNT data */
+proc genmod data=justwomen;
+	class Race(ref="whi") BMIgroup(ref="2") HasDia(ref="no") AlcCon(ref="reg") 
+		smoker(ref="no") HealthCov(ref="yes");
+
+	/* Declare categorical variables */
+	model LiveBirths=Race BMIgroup HasDia AlcCon Smoker HealthCov/ dist=poisson 
+		link=log type3;
+	title "Poisson Regression Model: Number of Live Births (LiveBirths)";
+run;
+
+proc genmod data=justwomen;
+	class Race(ref="whi") BMIgroup(ref="2") HasDia(ref="no") AlcCon(ref="reg") 
+		smoker(ref="no") HealthCov(ref="yes");
+
+	/* Declare categorical variables */
+	model TimesPreg=Race BMIgroup HasDia AlcCon Smoker HealthCov/ dist=poisson 
+		link=log type3;
+	title "Poisson Regression Model: Number of Times Pregnant(TimesPreg)";
+run;
+
+/* ANOVA ---USE THIS FOR PAPER*/
+proc anova data=justwomen;
+	class BMIgroup;
+
+	/* This is your categorical factor */
+	model LiveBirths=BMIgroup;
+
+	/* The dependent variable */
+	run;
+
+	/* USE FOR PAPER || Least Squares Means || */
+proc glm data=justwomen;
+	class BMIgroup;
+	model LiveBirths=BMIgroup;
+	lsmeans BMIgroup / pdiff=all;
+
+	/* Pairwise comparisons */
+	run;
+
+	/* TO SEE HEAVY BABY-- HAVE TO CONVERT FIRST */
+data heavybabychange;
+	set justwomen;
+
+	if HeavyBaby="yes" then
+		HeavyBaby_num=1;
+	else if HeavyBaby="no" then
+		HeavyBaby_num=0;
+	else if Heavybaby="nul" then
+		HeavyBaby_num=0 /* invalid */;
+run;
+
+proc genmod data=heavybabychange;
+	class Race(ref="whi") BMIgroup(ref="2") HasDia(ref="no") AlcCon(ref="reg") 
+		smoker(ref="no") HealthCov(ref="yes");
+	model HeavyBaby_num=Race BMIgroup HasDia AlcCon smoker HealthCov/ dist=poisson 
+		link=log type3;
+	title "Poisson Regression Model: Having a Heavy Baby (HeavyBaby)";
+run;
+
+/* ANOVA ---USE THIS FOR HEAVY!!! Baby*/
+proc anova data=heavybabychange;
+	class BMIgroup HasDia;
+
+	/* This is your categorical factor */
+	model HeavyBaby_num=BMIgroup HasDia;
+
+	/* The dependent variable */
+	run;
+
+	/* USE FOR PAPER || Least Squares Means--HEAVY BABY-- shows difference between group 1&2 and 4 || */
+proc glm data=heavybabychange;
+	class BMIgroup HasDia;
+	model HeavyBaby_num=BMIgroup HasDia;
+	lsmeans BMIgroup HasDia / pdiff=all;
+
+	/* Pairwise comparisons */
+	run;
+
+	/* logistic regression--HAVING ERRORS */
+proc logistic data=heavybabychange;
+	class BMIgroup(ref="2") HasDia(ref="no") (param=ref);
+
+	/* Specify categorical predictors */
+	model HeavyBaby_num(event='1')=healthcoverage BMIgroup HasDia;
+	output out=predicted_values p=probabilities;
+run;
+
+/* ================================================================================================== */
+/* ================================================================================================== */
+/* ================================================================================================== */
+/* ================================================================================================== */
+/* ================================================================================================== */
+/* ================================================================================================== */
+
+
+/* COMPREHENSIVE CAPSTONE FIX --- set with it all, BestSet */
+data BestSet;
+	set justwomen (drop=NumDeliv timespreg heavybaby HHIncome GestDia);
+
+	if age< 30 then
+		AgeGroup="Young";
+
+	if age>29 and age<40 then
+		AgeGroup="Adult";
+
+	if age>39 and age<60 then
+		AgeGroup="Older";
+	drop Age;
+	/*if agelivebirth<10 then delete;
+	if agelivebirth >80 then delete;*/
+run;
+
+/* ================================================================================================== */
+/* EVERPREG--Binary variable-- EFFECT MODIER OR CONFOUNDER TEST */
+/* Testing RACE */
+proc logistic data=BestSet;
+	class race (ref="whi") BMIGroup (ref="2") / param=ref;
+	model EverPreg(event="yes")=BMIGroup race BMIGroup*race;
+run;
+
+proc logistic data=BestSet;
+	class race (ref="whi") BMIGroup (ref="2") / param=ref;
+	model EverPreg(event="yes")=BMIGroup race;
+run;
+/* UNADJUSTED ODDS RATIO CALCUATION */
+proc logistic data=BestSet;
+   class race (ref='whi') / param=ref;
+   model EverPreg(event='yes') = race;
+   oddsratio race;
+run;
+/* ADJUSTED ODDS RATIO CALCUATION */
+proc logistic data=BestSet;
+   class race (ref='whi') BMIGroup (ref='2') / param=ref;
+   model EverPreg(event='yes') = BMIGroup race;
+   oddsratio race;
+run;
+
+/* RACE IS NOT A CONFOUNDER-- IT'S AN INDEPENDENT VARIABLE */
+/*Testing Alcohol Consumption AlcCon */
+proc logistic data=BestSet;
+	class AlcCon (ref="light") BMIGroup (ref="2") / param=ref;
+	model EverPreg(event="yes")=BMIGroup AlcCon BMIGroup*AlcCon; 
+run; /* might be a confounder */
+proc logistic data=BestSet;
+	class AlcCon (ref="light") BMIGroup (ref="2") / param=ref;
+	model EverPreg(event="yes")=BMIGroup AlcCon;
+oddsratio AlcCon;
+run;
+/* UNADJUSTED ODDS RATIO CALCUATION */
+proc logistic data=BestSet;
+   class AlcCon (ref='reg') / param=ref;
+   model EverPreg(event='yes') = AlcCon;
+   oddsratio AlcCon;
+run;
+/* ADJUSTED ODDS RATIO CALCUATION */
+proc logistic data=BestSet;
+   class AlcCon (ref='reg') BMIGroup (ref='2') / param=ref;
+   model EverPreg(event='yes') = BMIGroup AlcCon;
+   oddsratio AlcCon;
+run;
+
+/*Testing HormUse */
+proc logistic data=BestSet;
+	class HormUse (ref="no") BMIGroup (ref="2") / param=ref;
+	model EverPreg(event="yes")=BMIGroup HormUse BMIGroup*HormUse;
+run;
+proc logistic data=BestSet;
+	class HormUse (ref="no") BMIGroup (ref="2") / param=ref;
+	model EverPreg(event="yes")=BMIGroup HormUse;
+run;
+/* UNADJUSTED ODDS RATIO CALCUATION */
+proc logistic data=BestSet;
+   class HormUse (ref='no') / param=ref;
+   model EverPreg(event='yes') = HormUse;
+   oddsratio HormUse;
+run;
+/* ADJUSTED ODDS RATIO CALCUATION */
+proc logistic data=BestSet;
+   class HormUse (ref='no') BMIGroup (ref='2') / param=ref;
+   model EverPreg(event='yes') = BMIGroup HormUse;
+   oddsratio HormUse;
+run;
+
+/* Testing SMOKING STATUS SMOKER */
+proc logistic data=BestSet;
+	class Smoker (ref="no") BMIGroup (ref="2") / param=ref;
+	model EverPreg(event="yes")=BMIGroup Smoker BMIGroup*Smoker;
+run;
+proc logistic data=BestSet;
+	class Smoker (ref="no") BMIGroup (ref="2") / param=ref;
+	model EverPreg(event="yes")=BMIGroup Smoker;
+run;
+/* UNADJUSTED ODDS RATIO CALCUATION */
+proc logistic data=BestSet;
+   class Smoker (ref="no") / param=ref;
+   model EverPreg(event='yes') = Smoker;
+   oddsratio Smoker;
+run;
+/* ADJUSTED ODDS RATIO CALCUATION */
+proc logistic data=BestSet;
+   class Smoker (ref="no") BMIGroup (ref='2') / param=ref;
+   model EverPreg(event='yes') = BMIGroup Smoker;
+   oddsratio Smoker;
+run;
+
+/* Testing AGEGROUP */
+proc logistic data=BestSet;
+	class AgeGroup (ref="Adult") BMIGroup (ref="2") / param=ref;
+	model EverPreg(event="yes")=BMIGroup AgeGroup BMIGroup*AgeGroup;
+run;
+proc logistic data=BestSet;
+	class AgeGroup (ref="Adult") BMIGroup (ref="2") / param=ref;
+	model EverPreg(event="yes")=BMIGroup AgeGroup;
+run;
+/* UNADJUSTED ODDS RATIO CALCUATION */
+proc logistic data=BestSet;
+   class AgeGroup (ref="Adult") / param=ref;
+   model EverPreg(event='yes') = AgeGroup;
+   oddsratio AgeGroup;
+run;
+/* ADJUSTED ODDS RATIO CALCUATION */
+proc logistic data=BestSet;
+   class AgeGroup (ref="Adult") BMIGroup (ref='2') / param=ref;
+   model EverPreg(event='yes') = BMIGroup AgeGroup;
+   oddsratio AgeGroup;
+run;
+
+/* Testing HEALTH COVERAGE (HEALTHCOV) */
+proc logistic data=BestSet;
+	class HealthCov (ref="yes") BMIGroup (ref="2") / param=ref;
+	model EverPreg(event="yes")=BMIGroup HealthCov BMIGroup*HealthCov;
+run;
+/* UNADJUSTED ODDS RATIO CALCUATION */
+proc logistic data=BestSet;
+   class HealthCov (ref='no') / param=ref;
+   model EverPreg(event='yes') = HealthCov;
+   oddsratio HealthCov;
+run;
+/* ADJUSTED ODDS RATIO CALCUATION */
+proc logistic data=BestSet;
+   class HealthCov (ref='no') BMIGroup (ref='2') / param=ref;
+   model EverPreg(event='yes') = BMIGroup HealthCov;
+   oddsratio HealthCov;
+run;
+
+/* IS EFFECT MODIFIER, WILL NOW STRAIFY RESULTS */
+/* Stratifying results for EVERPREG and HEALTHCOV */
+proc logistic data=BestSet;
+	class BMIGroup (ref="2") HealthCov (ref="yes") / param=ref;
+	model EverPreg(event="yes")=BMIGroup HealthCov BMIGroup*HealthCov;
+	lsmeans BMIGroup*HealthCov / exp cl;
+run;
+
+proc logistic data=BestSet;
+	class HealthCov (ref="yes") BMIGroup (ref="2") / param=ref;
+	model EverPreg(event="yes")=BMIGroup HealthCov BMIGroup*HealthCov;
+	effectplot interaction(sliceby=HealthCov) / clm;
+run;
+
+/* ================================================================================================== */
+
+/* LIVEBIRTHS-- Count variable-- EFFECT MODIER OR CONFOUNDER TEST  */
+/* Testing RACE */
+proc genmod data=BestSet;
+	class race BMIgroup;
+	model LiveBirths=BMIgroup race BMIgroup*race / dist=poisson link=log type3;
+run;
+
+proc genmod data=BestSet;
+	class race BMIgroup;
+	model LiveBirths=BMIgroup race / dist=poisson link=log type3;
+run;
+
+/* Unadjusted */
+proc genmod data=BestSet;
+   class race;
+   model LiveBirths = race / dist=poisson link=log type3;
+   estimate 'Unadjusted OR' race 1 / exp;
+run;
+/* Adjusted */
+proc genmod data=BestSet;
+   class race BMIgroup;
+   model LiveBirths = BMIgroup race / dist=poisson link=log type3;
+   estimate 'Adjusted OR' race 1 / exp;
+run;
+
+/*Testing Alcohol Consumption AlcCon */
+proc genmod data=BestSet;
+	class AlcCon BMIgroup;
+	model LiveBirths=BMIgroup AlcCon BMIgroup*AlcCon / dist=poisson link=log type3;
+run;
+
+proc genmod data=BestSet;
+	class AlcCon BMIgroup;
+	model LiveBirths=BMIgroup AlcCon / dist=poisson link=log type3;
+run;
+
+/* Unadjusted */
+proc genmod data=BestSet;
+   class AlcCon;
+   model LiveBirths = AlcCon / dist=poisson link=log type3;
+   estimate 'Unadjusted OR' AlcCon 1 / exp;
+run;
+/* Adjusted */
+proc genmod data=BestSet;
+   class AlcCon BMIgroup;
+   model LiveBirths = BMIgroup AlcCon / dist=poisson link=log type3;
+   estimate 'Adjusted OR' AlcCon 1 / exp;
+run;
+
+/*Testing HormUse */
+proc genmod data=BestSet;
+	class HormUse BMIgroup;
+	model LiveBirths=BMIgroup HormUse BMIgroup*HormUse / dist=poisson link=log type3;
+run;
+proc genmod data=BestSet;
+	class HormUse BMIgroup;
+	model LiveBirths=BMIgroup HormUse / dist=poisson link=log type3;
+run;
+/* Unadjusted */
+proc genmod data=BestSet;
+   class HormUse;
+   model LiveBirths = HormUse / dist=poisson link=log type3;
+   estimate 'Unadjusted OR' HormUse 1 / exp;
+run;
+/* Adjusted */
+proc genmod data=BestSet;
+   class HormUse BMIgroup;
+   model LiveBirths = BMIgroup HormUse / dist=poisson link=log type3;
+   estimate 'Adjusted OR' HormUse 1 / exp;
+run;
+
+/*Testing Smoker */
+proc genmod data=BestSet;
+	class Smoker BMIgroup;
+	model LiveBirths=BMIgroup Smoker BMIgroup*Smoker / dist=poisson link=log type3;
+run;
+proc genmod data=BestSet;
+	class Smoker BMIgroup;
+	model LiveBirths=BMIgroup Smoker/ dist=poisson link=log type3;
+run;
+/* Unadjusted */
+proc genmod data=BestSet;
+   class Smoker;
+   model LiveBirths = Smoker / dist=poisson link=log type3;
+   estimate 'Unadjusted OR' Smoker 1 / exp;
+run;
+/* Adjusted */
+proc genmod data=BestSet;
+   class Smoker BMIgroup;
+   model LiveBirths = BMIgroup Smoker / dist=poisson link=log type3;
+   estimate 'Adjusted OR' Smoker 1 / exp;
+run;
+
+
+
+/*Testing AgeGroup */
+proc genmod data=BestSet;
+	class AgeGroup BMIgroup;
+	model LiveBirths=BMIgroup AgeGroup BMIgroup*AgeGroup / dist=poisson link=log type3;
+run;
+proc genmod data=BestSet;
+	class AgeGroup BMIgroup;
+	model LiveBirths=BMIgroup AgeGroup / dist=poisson link=log type3;
+run;
+/* Unadjusted */
+proc genmod data=BestSet;
+   class AgeGroup (ref="Adult")/ param=ref;
+   model LiveBirths = AgeGroup / dist=poisson link=log type3;
+   estimate 'Unadjusted OR' AgeGroup 1 / exp;
+run;
+/* Adjusted */
+proc genmod data=BestSet;
+   class AgeGroup BMIgroup;
+   model LiveBirths = BMIgroup AgeGroup / dist=poisson link=log type3;
+   estimate 'Adjusted OR' AgeGroup 1 / exp;
+run;
+
+
+/*Testing HealthCov */
+proc genmod data=BestSet;
+	class HealthCov BMIgroup;
+	model LiveBirths=BMIgroup HealthCov BMIgroup*HealthCov / dist=poisson link=log type3;
+run;
+
+/* looking at sample size for each race */ 
+proc freq data= bestset; 
+	table AgeGroup Race; 
+	run; 
+
+/* sampling weights */
+PROC LOGISTIC DATA=bestset;
+    CLASS HealthCov (REF='1');
+    MODEL EverPreg (EVENT='yes') = HealthCov BMIGroup;
+    WEIGHT SampleWeight;
+RUN;
+
+PROC LOGISTIC DATA=bestset;
+    CLASS Race (REF='Whi');  /* Ensure 'White' matches dataset values */
+    MODEL EverPreg (EVENT='yes') = Race BMIGroup;  /* Ensure 'Yes' matches dataset */
+    WEIGHT SampleWeight;  /* Ensure no missing/zero values */
+RUN;
+
+/*=================================================================================================*/
+/*      =================================RUNNING CODES=========================================    */
+/* logistic regression--- EverPreg---BINARY*/
+
+proc logistic data=bestset descending;
+   class BMIgroup (ref="2") Race (ref="whi") AlcCon (ref="reg") HormUse (ref="no") Smoker (ref="no") AgeGroup (ref="Adult") HealthCov (ref="yes") /*effect modifider*// param=ref;	
+   model EverPreg = BMIgroup Race AlcCon HormUse Smoker AgeGroup HealthCov /*effect modifider*/  
+	BMIgroup*Race BMIgroup*AlcCon BMIgroup*HormUse BMIgroup*Smoker BMIgroup*AgeGroup BMIgroup*HealthCov /*effect modifider*/;
+run;
+
+
+/* FOR CLEAR RELATIVE COMPARISON
+proc logistic data=bestset descending;
+oddsratio BMIgroup / at(Race=ALL);
+oddsratio BMIgroup / at(AlcCon=ALL);
+run;*/
+
+/*=================================================================================================*/
+/*      =================================RUNNING CODES=========================================    */
+
+
+/* Poisson regression--LiveBirth COUNT */
+proc genmod data=BestSet;
+	class BMIgroup (ref="2") Race (ref="whi") AlcCon (ref="reg") HormUse (ref="no") Smoker (ref="no") AgeGroup (ref="Adult") HealthCov (ref="yes") /param=ref;
+	model LiveBirths=BMIgroup race AlcCon HormUse Smoker AgeGroup HealthCov BMIgroup*race BMIgroup*AlcCon BMIgroup*HormUse BMIgroup*Smoker BMIgroup*AgeGroup BMIgroup*HealthCov / dist=poisson link=log type3;
+run;
+
+/*=================================================================================================*/
+/*      =================================RUNNING CODES=========================================    */
+
+/* Univariate logistic regression for EverPreg */
+proc logistic data=bestset;
+   class BMIGroup (ref='2');  /* Replace 'Adult' with your reference group */
+   model EverPreg = BMIGroup;
+run;
+
+proc logistic data=bestset descending;
+   class BMIgroup (ref="2") Race (ref="whi") Smoker (ref="no") AgeGroup (ref="Adult") / param=ref;	
+   model EverPreg (event="yes") = BMIgroup Race Smoker AgeGroup 
+	BMIgroup*Race BMIgroup*Smoker BMIgroup*AgeGroup;
+	output out=predicted_Preg pred=prob;
+run;
+proc sgplot data=predicted_Preg;
+   vbox prob / category=BMIgroup;
+   yaxis label="Predicted Probability";
+run;
+
+/*sampling weights for race*/
+data bestset_weighted;
+   set bestset;
+   if Race = "whi" then sample_weight = 1.0;
+   else if Race = "blk" then sample_weight = 1.5;
+   else if Race = "asian" then sample_weight = 2.0;
+   else sample_weight = 1.0; /* default */
+run;
+proc logistic data=bestset_weighted descending;
+   class BMIgroup (ref="2") Race (ref="whi") Smoker (ref="no") AgeGroup (ref="Adult") / param=ref;
+
+   model EverPreg (event="yes") = 
+      BMIgroup Race Smoker AgeGroup 
+      BMIgroup*Race BMIgroup*Smoker BMIgroup*AgeGroup;
+
+   weight sample_weight;
+
+   output out=predicted_Preg pred=prob;
+run;
+
+
+
+
+
+
+/* GLM CHART */
+proc sgplot data=predicted_Preg;
+   scatter x=Race y=prob;
+  loess x=Race y=prob; /*Adds smoothed curve*/
+   title "Predicted Probability of Outcome by Race";
+run;
+
+/* Graphs for RACE EverPreg */
+proc means data=predicted_Preg noprint;
+   class Race;
+   var prob;
+   output out=avg_probs mean=mean_prob;
+run;
+
+data avg_probs;
+   set avg_probs;
+   if Race = "whi" then race_order = 1;
+   else if Race = "blk" then race_order = 2;
+   else if Race = "asian" then race_order = 3;
+   else race_order = 4;
+run;
+
+proc sort data=avg_probs;
+   by race_order;
+run;
+
+proc sgplot data=avg_probs;
+   series x=Race y=mean_prob / markers;
+   scatter x=Race y=mean_prob; /* adds visible points on top of line */
+   title "Predicted Probability of EverPreg by Race";
+run;
+
+proc sgplot data=avg_probs;
+   vbar Race / response=mean_prob;
+   title "Predicted Probability of EverPreg by Race";
+run;
+
+/* Graphs for Smoking EverPreg */
+proc means data=predicted_Preg noprint;
+   class Smoker;
+   var prob;
+   output out=avg_smoke mean=mean_smoke;
+run;
+proc sgplot data=avg_smoke;
+   vbar Smoker / response=mean_smoke;
+   title "Predicted Probability of EverPreg by Smoking Status";
+run;
+/* Graphs for Age EverPreg */
+proc means data=predicted_Preg noprint;
+   class AgeGroup;
+   var prob;
+   output out=avg_age mean=mean_age;
+run;
+proc sgplot data=avg_age;
+   vbar AgeGroup / response=mean_age;
+   title "Predicted Probability of EverPreg by Age Group";
+run;
+
+/*=================================================================================================*/
+/*      =================================RUNNING CODES=========================================    */
+
+/* Univariate logistic regression for LiveBirth */
+proc genmod data=BestSet;
+   class BMIGroup (ref='2');
+   model LiveBirths = BMIGroup / dist=poisson link=log type3;
+run;
+
+proc genmod data=BestSet;
+	class BMIgroup (ref="2") Race (ref="whi") AlcCon (ref="reg") Smoker (ref="no") AgeGroup (ref="Adult") HealthCov (ref="yes") /param=ref;
+	model LiveBirths=BMIgroup race AlcCon Smoker AgeGroup HealthCov BMIgroup*race BMIgroup*AlcCon BMIgroup*Smoker BMIgroup*AgeGroup BMIgroup*HealthCov / dist=poisson link=log type3;
+	lsmeans BMIgroup / ilink cl;
+run;
+proc sgplot data=BestSet;
+   vbar BMIgroup / response=mean stat=mean datalabel
+                   limitlower=lower limitupper=upper;
+   yaxis label="Predicted Count";
+run;
+
+/*Sampling weights */
+data BestSet_weighted;
+   set BestSet;
+   if Race = "whi" then sample_weight = 1.0;
+   else if Race = "blk" then sample_weight = 1.3;
+   else if Race = "asian" then sample_weight = 1.7;
+   else sample_weight = 1.0; /* default fallback */
+run;
+proc genmod data=BestSet_weighted;
+	class BMIgroup (ref="2") Race (ref="whi") AlcCon (ref="reg") 
+	      Smoker (ref="no") AgeGroup (ref="Adult") HealthCov (ref="yes") / param=ref;
+
+	model LiveBirths = BMIgroup Race AlcCon Smoker AgeGroup HealthCov 
+	                   BMIgroup*Race BMIgroup*AlcCon BMIgroup*Smoker 
+	                   BMIgroup*AgeGroup BMIgroup*HealthCov 
+	       / dist=poisson link=log type3;
+
+	weight sample_weight;
+
+	lsmeans BMIgroup / ilink cl;
+run;
+
+
+
+/*GLM CHART FOR LIVEBIRTHS*/
+proc genmod data=BestSet2;
+	class BMIgroup (ref="2") Race (ref="whi") AlcCon (ref="reg") Smoker (ref="no") AgeGroup (ref="Adult") HealthCov (ref="yes") /param=ref;
+	model LiveBirths=BMIgroup race AlcCon Smoker AgeGroup HealthCov BMIgroup*race BMIgroup*AlcCon BMIgroup*Smoker BMIgroup*AgeGroup BMIgroup*HealthCov / dist=poisson link=log type3;
+	lsmeans BMIgroup race AlcCon Smoker AgeGroup HealthCov BMIgroup*race BMIgroup*AlcCon BMIgroup*Smoker BMIgroup*AgeGroup BMIgroup*HealthCov/ ilink cl;
+	output out= pred_out pred=predicted_prob; 
+run;
+
+data BestSet2;
+   set BestSet;
+   BMIgroup_num = input(BMIgroup, 8.); /* Create new numeric age variable */
+run;
+
+
+proc sgplot data=pred_out;
+   scatter x=BMIgroup_num y=predicted_prob;
+   loess x=BMIgroup_num y=predicted_prob; /* Adds smoothed curve */
+   title "Predicted Probability of Outcome by BMI Group";
+run;
+
+proc sgplot data=pred_out;
+   scatter x=AlcCon y=predicted_prob;
+   loess x=AlcCon y=predicted_prob; /* Adds smoothed curve */
+   title "Predicted Probability of Outcome by AlcCon";
+run;
+
+proc sgplot data=pred_out;
+   scatter x=race y=predicted_prob;
+   loess x=race y=predicted_prob; /* Adds smoothed curve */
+   title "Predicted Probability of Outcome by Race";
+run;
+
+/* ================ After Second Meeting ==================*/
+
+
+/* Race and Smoker is the only confounder for EverPreg, therefore only include race in the test*/
+
+proc sort data= bestset;
+by HealthCov; 
+run; 
+
+proc logistic data=BestSet; /*for chart without confounder */
+   class BMIGroup (ref='2') / param=ref;
+   model EverPreg(event='yes') = BMIGroup;
+   by HealthCov;
+   oddsratio BMIGroup;
+   ods output OddsRatio=or_table;
+run;
+
+proc print data=or_table;
+    title "Odds Ratios and 95% CIs for BMI by Health Coverage";
+run;
+
+proc sort data=BestSet;
+   by HealthCov;
+run;
+
+data orderedset;
+set bestset;
+by HealthCov; 
+run;
+
+proc logistic data=BestSet;
+   class BMIgroup(ref='2') Race(ref= "whi") AlcCon(ref='reg') AgeGroup(ref='Adult') / param=ref;
+   model EverPreg(event='yes') = BMIgroup Race AlcCon AgeGroup BMIgroup*Race BMIgroup*AgeGroup BMIgroup*AlcCon;
+   by HealthCov;
+   oddsratio BMIgroup;
+   ods output OddsRatio=or_table_con;
+run;
+
+/* to fix */
+proc sort data=BestSet;
+   by HealthCov;
+run;
+data BestSet_clean;
+   set BestSet;
+   if cmiss(of EverPreg BMIgroup Race AlcCon AgeGroup HealthCov) then delete;
+run;
+proc freq data=BestSet_clean;
+   tables EverPreg BMIgroup Race AlcCon AgeGroup HealthCov / missing;
+run;
+proc logistic data=BestSet_clean;
+   class BMIgroup(ref='2') Race(ref= "whi") AlcCon(ref='reg') AgeGroup(ref='Adult') / param=ref;
+   model EverPreg(event='yes') = BMIgroup Race AlcCon AgeGroup BMIgroup*Race BMIgroup*AgeGroup BMIgroup*AlcCon;
+   by HealthCov;
+   oddsratio BMIgroup;
+   ods output OddsRatio=or_table_con;
+run;
+/*only odds ratio*/
+proc logistic data=BestSet_clean;
+   class BMIgroup(ref='2') Race(ref= "whi") AlcCon(ref='reg') AgeGroup(ref='Adult') / param=ref;
+   model EverPreg(event='yes') = BMIgroup Race AlcCon AgeGroup BMIgroup*Race BMIgroup*AgeGroup BMIgroup*AlcCon;
+   by HealthCov;
+   oddsratio BMIgroup;
+   ods output OddsRatio=or_table_full;
+run;
+
+data or_table_only;
+   set or_table_full(keep=Effect OddsRatioEst);
+run;
+
+proc print data=or_table_only noobs;
+run;
+
+
+/*===========================================*/
+
+proc print data=or_table_con;
+    title "Odds Ratios and 95% CIs for BMI by Health Coverage";
+run;
+
+
+
+/* 5/23/2025 */
+proc logistic data=BestSet;
+   class BMIgroup (ref='2') Race (ref='whi') AgeGroup(ref="Adult") AlcCon(ref="reg") / param=ref;	
+   model EverPreg (event="yes") = BMIgroup AlcCon AgeGroup Race;
+	by HealthCov;
+   oddsratio BMIGroup;
+run;
+proc print data=or_table_con;
+    title "Odds Ratios and 95% CIs for BMI by Health Coverage Including Confounding Covariates";
+run;
+
+/* Race, AlcCon, HormUse are the only confounders for LiveBirth*/
+proc sort data= bestset;
+by HealthCov; 
+run; 
+
+proc genmod data=BestSet_clean2;
+   class BMIGroup (ref='2');
+   model LiveBirths = BMIGroup / dist=poisson link=log type3;
+	by HealthCov;
+run;
+
+/* To fix */
+proc sort data=BestSet;
+   by HealthCov;
+run;
+data BestSet_clean2;
+   set BestSet;
+   if cmiss(of LiveBirths BMIgroup Race AlcCon HormUse HealthCov) then delete;
+run;
+proc freq data=BestSet_clean2;
+   tables Race BMIgroup AlcCon HormUse LiveBirths HealthCov / missing;
+run;
+
+proc genmod data=BestSet_clean2;
+   class BMIGroup (ref='2') Race(ref='whi') AlcCon(ref='reg') HormUse(ref='no') / param=ref;
+   model LiveBirths = BMIGroup Race AlcCon HormUse / dist=poisson link=log type3;
+	by HealthCov;
+run;
+
+proc means data=BestSet noprint;
+    class BMIGroup HealthCov;
+    var LiveBirths;
+    output out=mean_births mean=Mean_LiveBirths;
+run;
+
+data clean_births;
+    set mean_births;
+    if _TYPE_ = 3; /
+run;
+
+proc sgplot data=clean_births;
+    vbar BMIGroup / response=Mean_LiveBirths group=HealthCov groupdisplay=cluster datalabel;
+    yaxis label="Mean Number of Live Births";
+    xaxis label="BMI Group";
+    title "Mean Live Births by BMI Group and Health Coverage";
+run;
+
+
+
+
+
+
+proc genmod data=BestSet;
+   class BMIGroup (ref="2") race AlcCon HormUse;
+   model LiveBirths = BMIGroup race AlcCon HormUse BMIGroup*race BMIGroup*AlcCon BMIGroup*HormUse/ dist=poisson link=log type3;
+	by HealthCov;
+run;
+
+
+
+proc genmod data=BestSet;
+	class BMIgroup (ref="2") Race (ref="whi") AlcCon (ref="reg") Smoker (ref="no") AgeGroup (ref="Adult") HealthCov (ref="yes") /param=ref;
+	model LiveBirths=BMIgroup race AlcCon HormUse BMIgroup*race BMIgroup*AlcCon BMIgroup*HormUse/ dist=poisson link=log type3;
+	lsmeans BMIgroup / ilink cl;
+run;
+proc sgplot data=BestSet;
+   vbar BMIgroup / response=mean stat=mean datalabel
+                   limitlower=lower limitupper=upper;
+   yaxis label="Predicted Count";
+run;
+
+/* descriptive statistics by BMI group */
+proc freq data=BestSet;
+    tables BMIGroup*(race AlcCon HormUse HealthCov Smoker AgeGroup) / norow nocol nopercent;
+run;
+
+
+/* EverPreg OR CI */
+proc logistic data=BestSet;
+  model AgeGroup(event='1') = BMIGroup;
+run;
+
+
+
+/* DAMNNNNNN */
+/* UNADJUSTED ODDS RATIO CALCUATION */
+proc logistic data=BestSet;
+   class BMIGroup (ref='2') / param=ref;
+   model EverPreg(event='yes') = BMIGroup;
+   oddsratio BMIGroup;
+   ods output ParameterEstimates=crude;
+run;
+/* ADJUSTED ODDS RATIO CALCUATION */
+proc logistic data=BestSet;
+   class Smoker (ref='no') BMIGroup (ref='2') / param=ref;
+   model EverPreg(event='yes') = BMIGroup Smoker;
+   oddsratio BMIGroup;
+   ods output ParameterEstimates=adjusted;
+run;
+
+proc sort data=crude;
+by ClassVal0;
+run;
+proc sort data=adjusted;
+by ClassVal0;
+run;
+
+
+/* Compare crude and adjusted OR for exposure */
+data confounder_check;
+   merge crude(rename=(Estimate=Est_crude Variable=Var))
+         adjusted(rename=(Estimate=Est_adj Variable=Var));
+   by ClassVal0;
+
+   if ClassVal0 = "1" then do;
+      OR_crude = exp(Est_crude);
+      OR_adj = exp(Est_adj);
+      pct_change = abs(OR_crude - OR_adj) / OR_crude * 100;
+   end;
+   if ClassVal0 = "3" then do;
+      OR_crude = exp(Est_crude);
+      OR_adj = exp(Est_adj);
+      pct_change = abs(OR_crude - OR_adj) / OR_crude * 100;
+      end;
+   if ClassVal0 = "4" then do;
+      OR_crude = exp(Est_crude);
+      OR_adj = exp(Est_adj);
+      pct_change = abs(OR_crude - OR_adj) / OR_crude * 100;
+   end;
+run;
+
+
+/* DAMNNNNNNN PT 2 */
+/* Unadjusted */
+proc genmod data=BestSet;
+   class BMIgroup (ref="2")/ param=ref;
+   model LiveBirths = BMIgroup / dist=poisson link=log type3;
+   estimate 'Unadjusted OR' BMIgroup 1 / exp;
+   ods output ParameterEstimates=crude;
+run;
+data crude1;
+	set crude;
+	excrude= exp(Estimate);
+	run;
+/* Adjusted */
+proc genmod data=BestSet;
+   class BMIgroup (ref="2") HormUse;
+   model LiveBirths = BMIgroup HormUse / dist=poisson link=log type3;
+   estimate 'Adjusted OR' BMIgroup 1 / exp;
+   ods output ParameterEstimates=adjusted;
+run;
+data adjusted1;
+	set adjusted;
+	exadj = exp(Estimate);
+run;
+proc sort data= crude1;
+by Level1;
+run;
+proc sort data= adjusted1;
+by Level1;
+run;
+
+data oddsratios (keep= Parameter Level1 excrude exadj pct_change);
+	merge crude1 adjusted1;
+	by Level1;
+	pct_change = abs(excrude - exadj) / excrude * 100;
+	run;
